@@ -8,7 +8,7 @@ from data.gridworld_dynamics import make_world, make_sequence, VOCAB_SIZE
 
 
 def train_one(steps=3000, lr=3e-4, log_every=500, seed=42, device="cuda",
-              rollout_steps=5, seq_len=32):
+              rollout_steps=3, seq_len=32, batch_size=4):
     torch.manual_seed(seed)
     world = make_world(seed=seed)
     model = WorldModelConf(vocab_size=VOCAB_SIZE).to(device)
@@ -18,7 +18,7 @@ def train_one(steps=3000, lr=3e-4, log_every=500, seed=42, device="cuda",
     losses = []
     for step in range(1, steps + 1):
         model.train()
-        seq, _ = make_sequence(world, seq_len, 32, device)
+        seq, _ = make_sequence(world, seq_len, batch_size, device)
 
         prefix_len = seq_len - rollout_steps
         prefix = seq[:, :prefix_len * 3]
@@ -51,6 +51,9 @@ def train_one(steps=3000, lr=3e-4, log_every=500, seed=42, device="cuda",
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
         losses.append(loss.item())
+
+        if step % 100 == 0:
+            torch.cuda.empty_cache()
 
         if step % log_every == 0:
             avg = sum(losses[-log_every:]) / log_every
