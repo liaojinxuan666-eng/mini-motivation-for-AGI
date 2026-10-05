@@ -1,3 +1,6 @@
+import os
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+
 import sys
 import time
 import torch
@@ -8,7 +11,7 @@ from data.gridworld_dynamics import make_world, make_sequence, VOCAB_SIZE
 
 
 def train_one(steps=3000, lr=3e-4, log_every=500, seed=42, device="cuda",
-              rollout_steps=3, seq_len=32, batch_size=4):
+              rollout_steps=2, seq_len=32, batch_size=2):
     torch.manual_seed(seed)
     world = make_world(seed=seed)
     model = WorldModelConf(vocab_size=VOCAB_SIZE).to(device)
@@ -52,7 +55,7 @@ def train_one(steps=3000, lr=3e-4, log_every=500, seed=42, device="cuda",
         opt.step()
         losses.append(loss.item())
 
-        if step % 100 == 0:
+        if step % 50 == 0:
             torch.cuda.empty_cache()
 
         if step % log_every == 0:
