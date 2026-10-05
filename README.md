@@ -1,0 +1,1 @@
+# mini-motivation-for-AGI
